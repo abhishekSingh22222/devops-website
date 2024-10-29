@@ -1,30 +1,44 @@
 pipeline {
     agent any
 
+    environment {
+        IMAGE_NAME = 'devops-website:latest'
+        TEST_CONTAINER = 'test-container'
+        DEPLOY_CONTAINER = 'website-container'
+    }
+
     stages {
         stage('Clone Repository') {
             steps {
-                git 'https://github.com/abhishekSingh22222/devops-website.git'
+                git url: 'https://github.com/abhishekSingh22222/devops-website.git'
             }
         }
 
         stage('Build Docker Image') {
             steps {
                 script {
-                    docker.build('devops-website:latest')
+                    // Build Docker image with a specific tag
+                    docker.build("${IMAGE_NAME}")
                 }
             }
         }
 
         stage('Run Tests') {
             steps {
-                sh 'docker run -d -p 8080:80 --name test-container devops-website:latest'
-                sh 'pytest tests/test_homepage.py'
+                script {
+                    // Run the Docker container in detached mode for testing
+                    sh "docker run -d -p 8080:80 --name ${TEST_CONTAINER} ${IMAGE_NAME}"
+                    // Run tests (replace 'tests/test_homepage.py' with the correct path if different)
+                    sh 'pytest tests/test_homepage.py'
+                }
             }
             post {
                 always {
-                    sh 'docker stop test-container'
-                    sh 'docker rm test-container'
+                    // Ensure the test container is stopped and removed
+                    script {
+                        sh "docker stop ${TEST_CONTAINER} || true"
+                        sh "docker rm ${TEST_CONTAINER} || true"
+                    }
                 }
             }
         }
@@ -32,9 +46,11 @@ pipeline {
         stage('Deploy') {
             steps {
                 script {
-                    sh 'docker stop website-container || true'
-                    sh 'docker rm website-container || true'
-                    sh 'docker run -d -p 80:80 --name website-container devops-website:latest'
+                    // Stop and remove the existing deployment container if it exists
+                    sh "docker stop ${DEPLOY_CONTAINER} || true"
+                    sh "docker rm ${DEPLOY_CONTAINER} || true"
+                    // Run the new Docker container as the deployment
+                    sh "docker run -d -p 80:80 --name ${DEPLOY_CONTAINER} ${IMAGE_NAME}"
                 }
             }
         }
