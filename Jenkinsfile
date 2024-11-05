@@ -19,7 +19,7 @@ pipeline {
         stage('Run Tests') {
             steps {
                 bat 'docker run -d -p 8080:80 --name test-container devops-website:latest'
-                bat 'pytest tests/test_homepage.py'
+                bat 'bash tests/test_homepage.sh'
             }
             post {
                 always {
