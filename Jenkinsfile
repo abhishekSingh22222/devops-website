@@ -32,8 +32,6 @@ pipeline {
         stage('Deploy') {
             steps {
                 script {
-                    bat 'docker stop website-container || true'
-                    bat 'docker rm website-container || true'
                     bat 'docker run -d -p 80:80 --name website-container devops-website:latest'
                 }
             }
