@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # URL of the website
-URL="http://localhost:8080"
+URL="http://localhost:80"
 
 # Make a request to the website and store the result
 response=$(curl -s $URL)
